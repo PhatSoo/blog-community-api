@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { User } from './user.schema';
-import * as MongooseSchema from 'mongoose';
+import { Types } from 'mongoose';
 
 @Schema({ timestamps: true, collection: 'keyStores' })
 export class KeyStore {
   @Prop({ required: true, ref: User.name })
-  userId: MongooseSchema.Types.ObjectId;
+  userId: Types.ObjectId;
 
   @Prop({ required: true })
   publicKey: string;

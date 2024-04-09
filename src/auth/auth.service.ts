@@ -4,26 +4,28 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
 import { RegisterDTO } from 'src/dtos';
-import { KeyStore, User } from 'src/schemas';
 import * as bcrypt from 'bcrypt';
 import { generateKeyPairSync } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { Token } from 'src/types';
-import { Request, response } from 'express';
+import { Request } from 'express';
+import { HEADERS } from 'src/constants';
+import { UserService } from 'src/user/user.service';
+import { KeyStoreService } from 'src/keyStore/keyStore.service';
+import { ResponseType } from 'src/types';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>,
-    @InjectModel(KeyStore.name) private keyStoreModel: Model<KeyStore>,
     private jwtService: JwtService,
+    private userService: UserService,
+    private keyStoreService: KeyStoreService,
   ) {}
 
-  async login({ email, password }) {
-    const foundUser = await this.userModel.findOne({ email }).exec();
+  async login({ email, password }): Promise<ResponseType> {
+    const foundUser = await this.userService.findByEmail(email);
 
     if (!foundUser) {
       throw new UnauthorizedException('Login failed!');
@@ -35,106 +37,131 @@ export class AuthService {
 
     const { publicKey, privateKey } = this.generateKeyPair();
 
-    const { id, displayName } = foundUser;
-    const token = this.createTokenPair({ userId: id, displayName }, privateKey);
+    const { id, displayName, isAdmin } = foundUser;
+
+    const token = this.createTokenPair(
+      { userId: id, displayName, isAdmin },
+      privateKey,
+    );
 
     // store login session of user
-    const keyStore = await this.keyStoreModel.findOneAndUpdate(
-      {
-        userId: foundUser._id,
-      },
-      { publicKey },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
+    const keyStore = await this.keyStoreService.findOneAndUpdate({
+      userId: new Types.ObjectId(id),
+      publicKey,
+    });
 
     if (!keyStore)
       throw new BadRequestException('Something went wrong! Re-login.');
 
-    return token;
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Login successful!',
+      data: token,
+    };
   }
 
-  async register(registerDTO: RegisterDTO) {
+  async register(registerDTO: RegisterDTO): Promise<ResponseType> {
     const { email } = registerDTO;
 
-    const foundUser = await this.userModel.findOne({ email }).exec();
+    const foundUser = await this.userService.findByEmail(email);
 
     if (foundUser)
       throw new BadRequestException('This email has already used!');
 
-    const newUser = await this.userModel.create(registerDTO);
+    const newUser = await this.userService.createUser(registerDTO);
 
     if (!newUser) throw new BadRequestException('Something went wrong!');
 
-    return newUser;
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Register an account successfull!',
+    };
   }
 
-  async refresh(req: Request) {
-    const rf_token = req.headers['rf-token'].toString();
+  async refresh(req: Request): Promise<ResponseType> {
+    const rf_token = req.headers[HEADERS.RF_TOKEN].toString();
 
     if (!rf_token) throw new UnauthorizedException('Re-login!');
 
-    const { userId, displayName } = this.jwtService.decode(rf_token);
+    const { userId, displayName, isAdmin } = this.jwtService.decode(rf_token);
 
-    const foundKeyStore = await this.keyStoreModel.findOne({
-      userId: new Types.ObjectId(userId),
-    });
+    const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
     if (!foundKeyStore) throw new UnauthorizedException('Re-login!');
 
     // check if user use an old refreshToken => true => disconnect user
     if (foundKeyStore.refreshTokenUsed.includes(rf_token)) {
-      return this.logout(req);
+      await this.keyStoreService.deleteByUserId(userId);
+
+      throw new UnauthorizedException('Something went wrong! Re-login.');
     }
 
-    const verify = this.jwtService.verify(rf_token, foundKeyStore);
-
-    if (!verify) {
-      throw new UnauthorizedException('Re-login!');
+    try {
+      this.jwtService.verify(rf_token, {
+        publicKey: foundKeyStore.publicKey,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Re-login');
     }
 
     const { publicKey, privateKey } = this.generateKeyPair();
 
-    const token = this.createTokenPair({ userId, displayName }, privateKey);
+    const token = this.createTokenPair(
+      { userId, displayName, isAdmin },
+      privateKey,
+    );
 
-    const keyStore = await this.keyStoreModel.findOneAndUpdate(
+    const keyStore = await this.keyStoreService.findOneAndUpdate(
       {
         userId: new Types.ObjectId(userId),
+        publicKey,
       },
-      { publicKey, $push: { refreshTokenUsed: rf_token } },
-      {
-        upsert: true,
-        new: true,
-      },
+      { $push: { refreshTokenUsed: rf_token } },
     );
 
     if (!keyStore)
       throw new BadRequestException('Something went wrong! Re-login.');
 
-    return token;
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Refresh token accepted!',
+      data: token,
+    };
   }
 
-  async logout(req: Request) {
-    const ac_token = req.headers.authorization?.split(' ')[1];
+  async logout(req: Request): Promise<ResponseType> {
+    const ac_token = req.headers.authorization.split(' ')[1];
 
     const { userId } = this.jwtService.decode(ac_token);
 
     if (!userId)
       throw new BadRequestException('Something went wrong! Try again later.');
 
-    const deleteKeyStore = await this.keyStoreModel.deleteOne({
-      userId: new Types.ObjectId(userId),
-    });
+    const deleteKeyStore = await this.keyStoreService.deleteByUserId(userId);
 
     if (!deleteKeyStore)
       throw new BadRequestException('Something went wrong! Try again later.');
 
     return {
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: 'Logout success!',
     };
+  }
+
+  async verify(token: string) {
+    const { userId } = this.jwtService.decode(token);
+
+    const foundKeyStore = await this.keyStoreService.findByUserID(userId);
+
+    if (!foundKeyStore) throw new UnauthorizedException('Re-login');
+
+    try {
+      return this.jwtService.verify(token, {
+        publicKey: foundKeyStore.publicKey,
+      });
+    } catch (error) {
+      return false;
+    }
   }
 
   generateKeyPair() {
