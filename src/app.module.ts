@@ -5,6 +5,13 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [MongoDBModule, UserModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    MongoDBModule,
+    UserModule,
+    AuthModule,
+  ],
 })
 export class AppModule {}

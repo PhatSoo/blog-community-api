@@ -4,7 +4,7 @@ import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { AuthGuard } from './auth.guard';
 
-@Controller()
+@Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 

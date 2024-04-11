@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterDTO } from 'src/dtos';
+import { LoginDTO, RegisterDTO } from 'src/dtos';
 import * as bcrypt from 'bcrypt';
 import { generateKeyPairSync } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
@@ -24,7 +24,8 @@ export class AuthService {
     private keyStoreService: KeyStoreService,
   ) {}
 
-  async login({ email, password }): Promise<ResponseType> {
+  async login(loginDTO: LoginDTO): Promise<ResponseType> {
+    const { email, password } = loginDTO;
     const foundUser = await this.userService.findByEmail(email);
 
     if (!foundUser) {
@@ -132,12 +133,13 @@ export class AuthService {
   async logout(req: Request): Promise<ResponseType> {
     const ac_token = req.headers.authorization.split(' ')[1];
 
-    const { userId } = this.jwtService.decode(ac_token);
+    const verified = await this.verify(ac_token);
 
-    if (!userId)
-      throw new BadRequestException('Something went wrong! Try again later.');
+    if (!verified) throw new UnauthorizedException();
 
-    const deleteKeyStore = await this.keyStoreService.deleteByUserId(userId);
+    const deleteKeyStore = await this.keyStoreService.deleteByUserId(
+      verified.userId,
+    );
 
     if (!deleteKeyStore)
       throw new BadRequestException('Something went wrong! Try again later.');
