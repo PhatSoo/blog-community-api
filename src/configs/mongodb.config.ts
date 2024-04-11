@@ -1,16 +1,23 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
+import {
+    MongooseModuleOptions,
+    MongooseOptionsFactory,
+} from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 
-@Module({
-  imports: [
-    MongooseModule.forRootAsync({
-      useFactory: async (configService: ConfigService) => ({
-        uri: `mongodb://${configService.get('DB_USER')}:${configService.get('DB_PASS')}@127.0.0.1:${configService.get('DB_PORT')}/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.4`,
-        dbName: configService.get('DB_NAME'),
-      }),
-      inject: [ConfigService],
-    }),
-  ],
-})
-export class MongoDBModule {}
+@Injectable()
+export class MongoConfig implements MongooseOptionsFactory {
+    constructor(private configService: ConfigService) {}
+
+    createMongooseOptions(): MongooseModuleOptions {
+        const user = this.configService.get('DB_USER');
+        const pass = this.configService.get('DB_PASS');
+        const port = this.configService.get('DB_PORT');
+        const dbName = this.configService.get('DB_NAME');
+
+        return {
+            uri: `mongodb://${user}:${pass}@127.0.0.1:${port}/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.1.4`,
+            dbName,
+        };
+    }
+}

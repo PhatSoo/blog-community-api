@@ -5,32 +5,32 @@ import { KeyStore } from 'src/schemas';
 
 @Injectable()
 export class KeyStoreService {
-  constructor(
-    @InjectModel(KeyStore.name) private keyStoreModel: Model<KeyStore>,
-  ) {}
+    constructor(
+        @InjectModel(KeyStore.name) private keyStoreModel: Model<KeyStore>,
+    ) {}
 
-  async findByUserID(id: string) {
-    return await this.keyStoreModel
-      .findOne({ userId: new Types.ObjectId(id) })
-      .exec();
-  }
+    async findByUserID(id: string) {
+        return await this.keyStoreModel
+            .findOne({ userId: new Types.ObjectId(id) })
+            .exec();
+    }
 
-  async findOneAndUpdate({ userId, publicKey }, options = {}) {
-    return await this.keyStoreModel.findOneAndUpdate(
-      {
-        userId,
-      },
-      { publicKey, ...options },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
-  }
+    async findOneAndUpdate({ userId, publicKey }, options = {}) {
+        return await this.keyStoreModel.findOneAndUpdate(
+            {
+                userId,
+            },
+            { publicKey, ...options },
+            {
+                upsert: true,
+                new: true,
+            },
+        );
+    }
 
-  async deleteByUserId(userId: string) {
-    return await this.keyStoreModel.deleteOne({
-      userId: new Types.ObjectId(userId),
-    });
-  }
+    async deleteByUserId(userId: string) {
+        return await this.keyStoreModel.deleteOne({
+            userId: new Types.ObjectId(userId),
+        });
+    }
 }

@@ -6,17 +6,17 @@ import { User } from 'src/schemas';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+    constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async findById(id: string) {
-    return await this.userModel.findById(id).exec();
-  }
+    async findById(id: string) {
+        return await this.userModel.findById(id).exec();
+    }
 
-  async findByEmail(email: string) {
-    return await this.userModel.findOne({ email }).exec();
-  }
+    async findByEmail(email: string) {
+        return await this.userModel.findOne({ email }).exec();
+    }
 
-  async createUser(registerDTO: RegisterDTO) {
-    return await this.userModel.create(registerDTO);
-  }
+    async createUser(registerDTO: RegisterDTO) {
+        return await this.userModel.create(registerDTO);
+    }
 }

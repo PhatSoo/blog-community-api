@@ -6,27 +6,27 @@ import { AuthGuard } from './auth.guard';
 
 @Controller('/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService) {}
 
-  @Post('/login')
-  login(@Body() loginDTO: LoginDTO) {
-    return this.authService.login(loginDTO);
-  }
+    @Post('/login')
+    login(@Body() loginDTO: LoginDTO) {
+        return this.authService.login(loginDTO);
+    }
 
-  @Post('/register')
-  register(@Body() registerDTO: RegisterDTO) {
-    return this.authService.register(registerDTO);
-  }
+    @Post('/register')
+    register(@Body() registerDTO: RegisterDTO) {
+        return this.authService.register(registerDTO);
+    }
 
-  @UseGuards(AuthGuard)
-  @Get('/refresh')
-  refresh(@Req() req: Request) {
-    return this.authService.refresh(req);
-  }
+    @UseGuards(AuthGuard)
+    @Get('/refresh')
+    refresh(@Req() req: Request) {
+        return this.authService.refresh(req);
+    }
 
-  @UseGuards(AuthGuard)
-  @Post('logout')
-  logout(@Req() req: Request) {
-    return this.authService.logout(req);
-  }
+    @UseGuards(AuthGuard)
+    @Post('logout')
+    logout(@Req() req: Request) {
+        return this.authService.logout(req);
+    }
 }

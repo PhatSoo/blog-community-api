@@ -8,14 +8,14 @@ import { UserService } from 'src/user/user.service';
 import { KeyStoreService } from 'src/keyStore/keyStore.service';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: User.name, schema: UserSchema },
-      { name: KeyStore.name, schema: KeyStoreSchema },
-    ]),
-    JwtModule.register({}),
-  ],
-  controllers: [AuthController],
-  providers: [AuthService, UserService, KeyStoreService],
+    imports: [
+        MongooseModule.forFeature([
+            { name: User.name, schema: UserSchema },
+            { name: KeyStore.name, schema: KeyStoreSchema },
+        ]),
+        JwtModule.register({}),
+    ],
+    controllers: [AuthController],
+    providers: [AuthService, UserService, KeyStoreService],
 })
 export class AuthModule {}
