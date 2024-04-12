@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginDTO, RegisterDTO } from '../dtos';
 import { AuthService } from './auth.service';
-import { Request } from 'express';
 import { AuthGuard } from './auth.guard';
+import { UserRequest } from '../types';
 
 @Controller('/auth')
 export class AuthController {
@@ -20,13 +20,13 @@ export class AuthController {
 
     @UseGuards(AuthGuard)
     @Get('/refresh')
-    refresh(@Req() req: Request) {
+    refresh(@Req() req: UserRequest) {
         return this.authService.refresh(req);
     }
 
     @UseGuards(AuthGuard)
     @Post('logout')
-    logout(@Req() req: Request) {
+    logout(@Req() req: UserRequest) {
         return this.authService.logout(req);
     }
 }

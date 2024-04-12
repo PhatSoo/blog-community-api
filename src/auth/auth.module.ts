@@ -2,10 +2,11 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { KeyStore, KeyStoreSchema, User, UserSchema } from 'src/schemas';
+import { KeyStore, KeyStoreSchema, User, UserSchema } from '../schemas';
 import { JwtModule } from '@nestjs/jwt';
-import { UserService } from 'src/user/user.service';
-import { KeyStoreService } from 'src/keyStore/keyStore.service';
+import { UserService } from '../user/user.service';
+import { KeyStoreService } from '../keyStore/keyStore.service';
+import { AuthGuard } from './auth.guard';
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { KeyStoreService } from 'src/keyStore/keyStore.service';
         JwtModule.register({}),
     ],
     controllers: [AuthController],
-    providers: [AuthService, UserService, KeyStoreService],
+    providers: [AuthService, UserService, KeyStoreService, AuthGuard],
+    exports: [AuthGuard],
 })
 export class AuthModule {}

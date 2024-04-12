@@ -8,8 +8,7 @@ import { LoginDTO, RegisterDTO } from 'src/dtos';
 import * as bcrypt from 'bcrypt';
 import { generateKeyPairSync } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
-import { Token } from 'src/types';
-import { Request } from 'express';
+import { Token, UserRequest } from 'src/types';
 import { HEADERS } from 'src/constants';
 import { UserService } from 'src/user/user.service';
 import { KeyStoreService } from 'src/keyStore/keyStore.service';
@@ -71,13 +70,12 @@ export class AuthService {
         };
     }
 
-    async refresh(req: Request): Promise<ResponseType> {
+    async refresh(req: UserRequest): Promise<ResponseType> {
         const rf_token = req.headers[HEADERS.RF_TOKEN].toString();
 
         if (!rf_token) throw new UnauthorizedException('Re-login!');
 
-        const { userId, displayName, isAdmin } =
-            this.jwtService.decode(rf_token);
+        const { userId, displayName, isAdmin } = req.userInfo;
 
         const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
@@ -123,10 +121,10 @@ export class AuthService {
         };
     }
 
-    async logout(req: Request): Promise<ResponseType> {
-        const ac_token = req.headers.authorization.split(' ')[1];
+    async logout(req: UserRequest): Promise<ResponseType> {
+        const ac_token = req.headers[HEADERS.AUTHORIZATION].split(' ')[1];
 
-        const verified = await this.verify(ac_token);
+        const verified = await this.verify(ac_token, req);
 
         if (!verified) throw new UnauthorizedException();
 
@@ -145,8 +143,13 @@ export class AuthService {
         };
     }
 
-    async verify(token: string) {
-        const { userId } = this.jwtService.decode(token);
+    async verify(token: string, req?: UserRequest) {
+        let userId = '';
+
+        if (!req) {
+            const decoded: Token = this.jwtService.decode(token);
+            userId = decoded.userId;
+        } else userId = req.userInfo.userId;
 
         const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
@@ -157,6 +160,8 @@ export class AuthService {
                 publicKey: foundKeyStore.publicKey,
             });
         } catch (error) {
+            console.log(`Verify token:::: ${error.message}`);
+
             return false;
         }
     }

@@ -9,14 +9,7 @@ export class LoginDTO {
     readonly password: string;
 }
 
-export class RegisterDTO {
-    @IsNotEmpty()
-    @IsEmail()
-    readonly email: string;
-
-    @IsNotEmpty()
-    readonly password: string;
-
+export class RegisterDTO extends LoginDTO {
     @IsNotEmpty()
     readonly displayName: string;
 

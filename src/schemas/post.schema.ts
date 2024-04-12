@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import { ConvertSlug } from '../utils';
 
 @Schema({ timestamps: true })
 export class Post {
-    @Prop({ required: true })
+    @Prop({ required: true, unique: true })
     title: string;
 
     @Prop()
@@ -22,9 +23,9 @@ export class Post {
 export const PostSchema = SchemaFactory.createForClass(Post);
 
 PostSchema.pre('save', function (next) {
-    this.slug = this.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-') // thay khoảng trắng bằng '-'.
-        .replace(/^-+|-+$/g, ''); // bỏ dấu gạch ngang ở đầu và cuối (nếu có).
+    this.slug = ConvertSlug(this.title);
+
+    this.createdBy = new Types.ObjectId(this.createdBy);
+
     next();
 });

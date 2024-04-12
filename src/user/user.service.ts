@@ -13,7 +13,10 @@ export class UserService {
     }
 
     async findByEmail(email: string) {
-        return await this.userModel.findOne({ email }).exec();
+        return await this.userModel
+            .findOne({ email })
+            .select('+password')
+            .exec();
     }
 
     async createUser(registerDTO: RegisterDTO) {
