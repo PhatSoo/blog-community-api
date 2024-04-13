@@ -13,6 +13,7 @@ import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { PostService } from './post.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PostGuard } from './post.guard';
 
 @Controller('post')
 export class PostController {
@@ -40,18 +41,14 @@ export class PostController {
     }
 
     @Patch(':slug')
-    @UseGuards(JwtAuthGuard)
-    editPost(
-        @Req() req: UserRequest,
-        @Body() editPostDTO: EditPostDTO,
-        @Param('slug') slug: string,
-    ) {
-        return this.postService.edit(req, editPostDTO, slug);
+    @UseGuards(JwtAuthGuard, PostGuard)
+    editPost(@Body() editPostDTO: EditPostDTO, @Param('slug') slug: string) {
+        return this.postService.edit(editPostDTO, slug);
     }
 
     @Delete(':slug')
     @UseGuards(JwtAuthGuard)
-    deletePost(@Req() req: UserRequest, @Param('slug') slug: string) {
-        return this.postService.delete(req, slug);
+    deletePost(@Param('slug') slug: string) {
+        return this.postService.delete(slug);
     }
 }

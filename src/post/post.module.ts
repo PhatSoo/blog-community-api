@@ -4,6 +4,7 @@ import { PostService } from './post.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from '../schemas';
 import { JwtModule } from '@nestjs/jwt';
+import { PostGuard } from './post.guard';
 
 @Module({
     imports: [
@@ -11,6 +12,6 @@ import { JwtModule } from '@nestjs/jwt';
         JwtModule.register({}),
     ],
     controllers: [PostController],
-    providers: [PostService],
+    providers: [PostService, PostGuard],
 })
 export class PostModule {}

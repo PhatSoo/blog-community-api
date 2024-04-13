@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { ConvertSlug } from '../utils';
+import { convertSlug, removeSpace } from '../utils';
 
 @Schema({ timestamps: true })
 export class Post {
@@ -23,7 +23,8 @@ export class Post {
 export const PostSchema = SchemaFactory.createForClass(Post);
 
 PostSchema.pre('save', function (next) {
-    this.slug = ConvertSlug(this.title);
+    this.title = removeSpace(this.title);
+    this.slug = convertSlug(this.title);
 
     this.createdBy = new Types.ObjectId(this.createdBy);
 

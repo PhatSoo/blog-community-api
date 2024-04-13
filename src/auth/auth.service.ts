@@ -77,7 +77,9 @@ export class AuthService {
 
         if (!rf_token) throw new UnauthorizedException('Re-login!');
 
-        const { userId, displayName, isAdmin } = req.user;
+        const decode: Token = this.jwtService.decode(rf_token);
+
+        const { userId, displayName, isAdmin } = decode;
 
         const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
@@ -124,15 +126,10 @@ export class AuthService {
     }
 
     async logout(req: UserRequest): Promise<ResponseType> {
-        const ac_token = req.headers[HEADERS.AUTHORIZATION].split(' ')[1];
+        const { userId } = req.user;
 
-        const verified = await this.verify(ac_token, req);
-
-        if (!verified) throw new UnauthorizedException();
-
-        const deleteKeyStore = await this.keyStoreService.deleteByUserId(
-            verified.userId,
-        );
+        const deleteKeyStore =
+            await this.keyStoreService.deleteByUserId(userId);
 
         if (!deleteKeyStore)
             throw new BadRequestException(
@@ -143,29 +140,6 @@ export class AuthService {
             statusCode: HttpStatus.OK,
             message: 'Logout success!',
         };
-    }
-
-    async verify(token: string, req?: UserRequest) {
-        let userId = '';
-
-        if (!req) {
-            const decoded: Token = this.jwtService.decode(token);
-            userId = decoded.userId;
-        } else userId = req.user.userId;
-
-        const foundKeyStore = await this.keyStoreService.findByUserID(userId);
-
-        if (!foundKeyStore) throw new UnauthorizedException('Re-login');
-
-        try {
-            return this.jwtService.verify(token, {
-                publicKey: foundKeyStore.publicKey,
-            });
-        } catch (error) {
-            console.log(`Verify token:::: ${error.message}`);
-
-            return false;
-        }
     }
 
     async getPublicKey(token: string) {

@@ -18,7 +18,6 @@ export class AuthController {
         return this.authService.register(registerDTO);
     }
 
-    @UseGuards(JwtAuthGuard)
     @Get('/refresh')
     refresh(@Req() req: UserRequest) {
         return this.authService.refresh(req);

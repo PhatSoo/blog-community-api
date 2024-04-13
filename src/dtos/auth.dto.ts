@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class LoginDTO {
     @IsNotEmpty()
@@ -13,5 +13,6 @@ export class RegisterDTO extends LoginDTO {
     @IsNotEmpty()
     readonly displayName: string;
 
+    @IsOptional()
     readonly isAdmin: boolean;
 }

@@ -1,5 +1,6 @@
 import {
     BadRequestException,
+    ForbiddenException,
     HttpStatus,
     Injectable,
     NotFoundException,
@@ -10,7 +11,6 @@ import { Model, Types } from 'mongoose';
 import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { Post } from 'src/schemas';
 import { ResponseType, UserRequest } from '../types';
-import { ConvertSlug } from 'src/utils';
 
 @Injectable()
 export class PostService {
@@ -70,58 +70,29 @@ export class PostService {
         };
     }
 
-    async edit(
-        req: UserRequest,
-        editPostDTO: EditPostDTO,
-        slug: string,
-    ): Promise<ResponseType> {
+    async edit(editPostDTO: EditPostDTO, slug: string): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
         if (!foundPost) throw new NotFoundException('Post not found!');
-
-        const checkPermission = await this.checkPermission(
-            req.user.userId,
-            slug,
-        );
-
-        if (!checkPermission)
-            throw new UnauthorizedException(
-                'You have no permission for this feature!',
-            );
 
         // remove slug if have no title
         if (!editPostDTO.title && editPostDTO.slug) {
             delete editPostDTO.slug;
         }
 
-        // if have title => generate slug
-        if (editPostDTO.title) {
-            editPostDTO.slug = ConvertSlug(editPostDTO.title);
+        for (let key in editPostDTO) {
+            foundPost[key] = editPostDTO[key];
         }
 
         return {
             message: 'Create post success!',
             statusCode: HttpStatus.CREATED,
-            data: await this.postModel.findOneAndUpdate(
-                { slug },
-                { $set: editPostDTO },
-                { new: true },
-            ),
+            data: await foundPost.save(),
         };
     }
 
-    async delete(req: UserRequest, slug: string): Promise<ResponseType> {
+    async delete(slug: string): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
         if (!foundPost) throw new NotFoundException('Post not found!');
-
-        const checkPermission = await this.checkPermission(
-            req.user.userId,
-            slug,
-        );
-
-        if (!checkPermission)
-            throw new UnauthorizedException(
-                'You have no permission for this feature!',
-            );
 
         const deletedPost = await this.postModel.deleteOne({ slug });
 
