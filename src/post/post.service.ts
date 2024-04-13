@@ -79,7 +79,7 @@ export class PostService {
         if (!foundPost) throw new NotFoundException('Post not found!');
 
         const checkPermission = await this.checkPermission(
-            req.userInfo.userId,
+            req.user.userId,
             slug,
         );
 
@@ -114,7 +114,7 @@ export class PostService {
         if (!foundPost) throw new NotFoundException('Post not found!');
 
         const checkPermission = await this.checkPermission(
-            req.userInfo.userId,
+            req.user.userId,
             slug,
         );
 

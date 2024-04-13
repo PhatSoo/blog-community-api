@@ -11,7 +11,7 @@ export type Token = {
 };
 
 export interface UserRequest extends Request {
-    userInfo: {
+    user: {
         userId: string;
         displayName: string;
         isAdmin: boolean;

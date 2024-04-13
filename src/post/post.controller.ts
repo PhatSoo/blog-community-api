@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { PostService } from './post.service';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { UserRequest } from 'src/types';
+import { UserRequest } from '../types';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('post')
 export class PostController {
@@ -34,13 +34,13 @@ export class PostController {
     }
 
     @Post()
-    @UseGuards(AuthGuard)
+    @UseGuards(JwtAuthGuard)
     createPost(@Req() req: UserRequest, @Body() createPostDTO: CreatePostDTO) {
-        return this.postService.create(createPostDTO, req.userInfo.userId);
+        return this.postService.create(createPostDTO, req.user.userId);
     }
 
     @Patch(':slug')
-    @UseGuards(AuthGuard)
+    @UseGuards(JwtAuthGuard)
     editPost(
         @Req() req: UserRequest,
         @Body() editPostDTO: EditPostDTO,
@@ -50,7 +50,7 @@ export class PostController {
     }
 
     @Delete(':slug')
-    @UseGuards(AuthGuard)
+    @UseGuards(JwtAuthGuard)
     deletePost(@Req() req: UserRequest, @Param('slug') slug: string) {
         return this.postService.delete(req, slug);
     }

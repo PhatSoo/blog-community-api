@@ -14,6 +14,8 @@ import { UserService } from 'src/user/user.service';
 import { KeyStoreService } from 'src/keyStore/keyStore.service';
 import { ResponseType } from 'src/types';
 import { Types } from 'mongoose';
+import { NextFunction } from 'express';
+import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -75,7 +77,7 @@ export class AuthService {
 
         if (!rf_token) throw new UnauthorizedException('Re-login!');
 
-        const { userId, displayName, isAdmin } = req.userInfo;
+        const { userId, displayName, isAdmin } = req.user;
 
         const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
@@ -149,7 +151,7 @@ export class AuthService {
         if (!req) {
             const decoded: Token = this.jwtService.decode(token);
             userId = decoded.userId;
-        } else userId = req.userInfo.userId;
+        } else userId = req.user.userId;
 
         const foundKeyStore = await this.keyStoreService.findByUserID(userId);
 
@@ -164,6 +166,16 @@ export class AuthService {
 
             return false;
         }
+    }
+
+    async getPublicKey(token: string) {
+        const { userId } = this.jwtService.decode(token);
+
+        const foundKeyStore = await this.keyStoreService.findByUserID(userId);
+
+        if (!foundKeyStore) return false;
+
+        return foundKeyStore.publicKey;
     }
 
     generateKeyPair() {
