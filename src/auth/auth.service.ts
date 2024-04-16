@@ -14,8 +14,6 @@ import { UserService } from 'src/user/user.service';
 import { KeyStoreService } from 'src/keyStore/keyStore.service';
 import { ResponseType } from 'src/types';
 import { Types } from 'mongoose';
-import { NextFunction } from 'express';
-import { log } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +29,7 @@ export class AuthService {
         if (!foundUser) {
             throw new UnauthorizedException('Login failed!');
         }
-        if (!bcrypt.compare(password, foundUser.password)) {
+        if (!(await bcrypt.compare(password, foundUser.password))) {
             throw new UnauthorizedException('Login failed!');
         }
         const { publicKey, privateKey } = this.generateKeyPair();
@@ -61,6 +59,8 @@ export class AuthService {
 
         if (foundUser)
             throw new BadRequestException('This email has already used!');
+
+        registerDTO.password = await bcrypt.hash(registerDTO.password, 10);
 
         const newUser = await this.userService.createUser(registerDTO);
 
