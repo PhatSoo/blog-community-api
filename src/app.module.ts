@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
+import { MongoConfig } from './configs/mongodb.config';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { PostModule } from './post/post.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        MongooseModule.forRootAsync({
+            useClass: MongoConfig,
+        }),
+        UserModule,
+        AuthModule,
+        PostModule,
+        CommentModule,
+    ],
 })
 export class AppModule {}
