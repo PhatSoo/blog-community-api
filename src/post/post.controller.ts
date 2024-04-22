@@ -20,6 +20,7 @@ export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
+    @UseGuards(JwtAuthGuard)
     list() {
         return this.postService.list();
     }

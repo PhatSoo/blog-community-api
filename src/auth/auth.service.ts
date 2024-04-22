@@ -73,7 +73,7 @@ export class AuthService {
     }
 
     async refresh(req: UserRequest): Promise<ResponseType> {
-        const rf_token = req.headers[HEADERS.RF_TOKEN].toString();
+        const rf_token = req.headers[HEADERS.RF_TOKEN];
 
         if (!rf_token) throw new UnauthorizedException('Re-login!');
 
