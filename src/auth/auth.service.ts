@@ -142,6 +142,14 @@ export class AuthService {
         };
     }
 
+    async me(req: UserRequest): Promise<ResponseType> {
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Get User Info success!',
+            data: req.user,
+        };
+    }
+
     async getPublicKey(token: string) {
         const { userId } = this.jwtService.decode(token);
 
