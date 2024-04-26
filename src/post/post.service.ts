@@ -133,7 +133,7 @@ export class PostService {
             message: 'Create comment success!',
             statusCode: HttpStatus.CREATED,
             data: await this.commentService.createPostComment(
-                req.user.userId,
+                req.user.id,
                 foundPost._id,
                 createCommentDTO,
             ),
@@ -154,7 +154,7 @@ export class PostService {
             message: 'Create comment success!',
             statusCode: HttpStatus.CREATED,
             data: await this.commentService.createPostSubComment(
-                req.user.userId,
+                req.user.id,
                 foundPost._id,
                 commentId,
                 createCommentDTO,

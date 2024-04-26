@@ -23,10 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: Token) {
-        const { userId, displayName, isAdmin } = payload;
+        const { id, displayName, isAdmin } = payload;
 
         return {
-            userId,
+            id,
             displayName,
             isAdmin,
         };

@@ -29,8 +29,8 @@ export class AuthController {
         return this.authService.logout(req);
     }
 
+    @Get('me')
     @UseGuards(JwtAuthGuard)
-    @Post('me')
     me(@Req() req: UserRequest) {
         return this.authService.me(req);
     }
