@@ -20,7 +20,6 @@ export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
-    @UseGuards(JwtAuthGuard)
     list() {
         return this.postService.list();
     }
@@ -38,7 +37,7 @@ export class PostController {
     @Post()
     @UseGuards(JwtAuthGuard)
     createPost(@Req() req: UserRequest, @Body() createPostDTO: CreatePostDTO) {
-        return this.postService.create(createPostDTO, req.user.userId);
+        return this.postService.create(createPostDTO, req.user.id);
     }
 
     @Patch(':slug')
