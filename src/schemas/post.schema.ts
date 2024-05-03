@@ -26,7 +26,7 @@ export class Post {
     views: number;
 
     @Prop({ default: 0 })
-    activities: number;
+    interactives: number;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

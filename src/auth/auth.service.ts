@@ -35,8 +35,6 @@ export class AuthService {
         const { publicKey, privateKey } = this.generateKeyPair();
         const { id, displayName, isAdmin } = foundUser;
 
-        console.log({ id, displayName, isAdmin });
-
         const token = this.createTokenPair(
             { id, displayName, isAdmin },
             privateKey,
