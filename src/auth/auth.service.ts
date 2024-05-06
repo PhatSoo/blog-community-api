@@ -176,7 +176,7 @@ export class AuthService {
 
     createTokenPair(payload: Token, privateKey: string) {
         const accessToken = this.jwtService.sign(payload, {
-            expiresIn: '5s',
+            expiresIn: '15m',
             privateKey,
             algorithm: 'PS256',
         });

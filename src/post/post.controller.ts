@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -20,8 +21,9 @@ export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
-    list() {
-        return this.postService.list();
+    list(@Query('sortBy') sortBy: string = 'createdAt') {
+        // createdAt || views || likes || interactives
+        return this.postService.list(sortBy);
     }
 
     @Get(':slug')

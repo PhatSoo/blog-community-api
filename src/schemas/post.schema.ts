@@ -26,6 +26,9 @@ export class Post {
     views: number;
 
     @Prop({ default: 0 })
+    likes: number;
+
+    @Prop({ default: 0 })
     interactives: number;
 }
 

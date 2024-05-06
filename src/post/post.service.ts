@@ -20,11 +20,18 @@ export class PostService {
         private commentService: CommentService,
     ) {}
 
-    async list(): Promise<ResponseType> {
+    async list(sortBy: string): Promise<ResponseType> {
+        const sortOption = {};
+        sortOption[sortBy] = 'desc';
+
         return {
             message: 'List all posts success!',
             statusCode: HttpStatus.OK,
-            data: await this.postModel.find().populate('createdBy').exec(),
+            data: await this.postModel
+                .find({ status: true })
+                .populate('createdBy')
+                .sort(sortOption)
+                .exec(),
         };
     }
 
