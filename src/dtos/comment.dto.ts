@@ -2,13 +2,13 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCommentDTO {
     @IsNotEmpty()
-    content: string;
+    message: string;
 }
 
 export class EditCommentDTO {
     @IsOptional()
     @IsString()
-    content: string;
+    message: string;
 
     @IsOptional()
     @IsBoolean()
