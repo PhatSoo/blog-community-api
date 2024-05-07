@@ -6,6 +6,9 @@ export class CreatePostDTO {
 
     @IsNotEmpty()
     content: string;
+
+    @IsNotEmpty()
+    description: string;
 }
 
 export class EditPostDTO {

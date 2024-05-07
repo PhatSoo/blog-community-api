@@ -18,6 +18,18 @@ export class Post {
 
     @Prop({ required: true, ref: 'User' })
     createdBy: Types.ObjectId;
+
+    @Prop()
+    description: string;
+
+    @Prop({ default: 0 })
+    views: number;
+
+    @Prop({ default: 0 })
+    likes: number;
+
+    @Prop({ default: 0 })
+    interactives: number;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

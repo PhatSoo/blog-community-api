@@ -28,4 +28,10 @@ export class AuthController {
     logout(@Req() req: UserRequest) {
         return this.authService.logout(req);
     }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    me(@Req() req: UserRequest) {
+        return this.authService.me(req);
+    }
 }

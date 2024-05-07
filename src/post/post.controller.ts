@@ -6,10 +6,11 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Req,
     UseGuards,
 } from '@nestjs/common';
-import { CreateCommentDTO, CreatePostDTO, EditPostDTO } from '../dtos';
+import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { PostService } from './post.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -20,8 +21,9 @@ export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
-    list() {
-        return this.postService.list();
+    list(@Query('sortBy') sortBy: string = 'createdAt') {
+        // createdAt || views || likes || interactives
+        return this.postService.list(sortBy);
     }
 
     @Get(':slug')
@@ -37,7 +39,7 @@ export class PostController {
     @Post()
     @UseGuards(JwtAuthGuard)
     createPost(@Req() req: UserRequest, @Body() createPostDTO: CreatePostDTO) {
-        return this.postService.create(createPostDTO, req.user.userId);
+        return this.postService.create(createPostDTO, req.user.id);
     }
 
     @Patch(':slug')
@@ -50,40 +52,5 @@ export class PostController {
     @UseGuards(JwtAuthGuard, PostGuard)
     deletePost(@Param('slug') slug: string) {
         return this.postService.delete(slug);
-    }
-
-    /* =====POST COMMENT===== */
-    // 1. Get comments from post
-    @Get('/:slug/comment')
-    async getComment(@Param('slug') slug: string) {
-        return this.postService.getPostComment(slug);
-    }
-
-    // 2. Create comment for post
-    @Post('/:slug/comment')
-    @UseGuards(JwtAuthGuard)
-    async createComment(
-        @Req() req: UserRequest,
-        @Param('slug') slug: string,
-        @Body() createCommentDTO: CreateCommentDTO,
-    ) {
-        return this.postService.createComment(req, slug, createCommentDTO);
-    }
-
-    // 3. Create comment for post
-    @Post('/:slug/comment/:commentId')
-    @UseGuards(JwtAuthGuard)
-    async createSubComment(
-        @Req() req: UserRequest,
-        @Param('slug') slug: string,
-        @Param('commentId') commentId: string,
-        @Body() createCommentDTO: CreateCommentDTO,
-    ) {
-        return this.postService.createSubComment(
-            req,
-            slug,
-            commentId,
-            createCommentDTO,
-        );
     }
 }

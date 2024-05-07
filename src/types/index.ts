@@ -5,15 +5,11 @@ export type ResponseType = {
 };
 
 export type Token = {
-    userId: string;
+    id: string;
     displayName: string;
     isAdmin: boolean;
 };
 
 export interface UserRequest extends Request {
-    user: {
-        userId: string;
-        displayName: string;
-        isAdmin: boolean;
-    };
+    user: Token;
 }

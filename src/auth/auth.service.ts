@@ -34,8 +34,9 @@ export class AuthService {
         }
         const { publicKey, privateKey } = this.generateKeyPair();
         const { id, displayName, isAdmin } = foundUser;
+
         const token = this.createTokenPair(
-            { userId: id, displayName, isAdmin },
+            { id, displayName, isAdmin },
             privateKey,
         );
         // store login session of user
@@ -73,21 +74,21 @@ export class AuthService {
     }
 
     async refresh(req: UserRequest): Promise<ResponseType> {
-        const rf_token = req.headers[HEADERS.RF_TOKEN].toString();
+        const rf_token = req.headers[HEADERS.RF_TOKEN];
 
         if (!rf_token) throw new UnauthorizedException('Re-login!');
 
         const decode: Token = this.jwtService.decode(rf_token);
 
-        const { userId, displayName, isAdmin } = decode;
+        const { id, displayName, isAdmin } = decode;
 
-        const foundKeyStore = await this.keyStoreService.findByUserID(userId);
+        const foundKeyStore = await this.keyStoreService.findByUserID(id);
 
         if (!foundKeyStore) throw new UnauthorizedException('Re-login!');
 
         // check if user use an old refreshToken => true => disconnect user
         if (foundKeyStore.refreshTokenUsed.includes(rf_token)) {
-            await this.keyStoreService.deleteByUserId(userId);
+            await this.keyStoreService.deleteByUserId(id);
 
             throw new UnauthorizedException('Something went wrong! Re-login.');
         }
@@ -103,13 +104,13 @@ export class AuthService {
         const { publicKey, privateKey } = this.generateKeyPair();
 
         const token = this.createTokenPair(
-            { userId, displayName, isAdmin },
+            { id, displayName, isAdmin },
             privateKey,
         );
 
         const keyStore = await this.keyStoreService.findOneAndUpdate(
             {
-                userId: new Types.ObjectId(userId),
+                userId: new Types.ObjectId(id),
                 publicKey,
             },
             { $push: { refreshTokenUsed: rf_token } },
@@ -126,10 +127,9 @@ export class AuthService {
     }
 
     async logout(req: UserRequest): Promise<ResponseType> {
-        const { userId } = req.user;
+        const { id } = req.user;
 
-        const deleteKeyStore =
-            await this.keyStoreService.deleteByUserId(userId);
+        const deleteKeyStore = await this.keyStoreService.deleteByUserId(id);
 
         if (!deleteKeyStore)
             throw new BadRequestException(
@@ -142,10 +142,18 @@ export class AuthService {
         };
     }
 
-    async getPublicKey(token: string) {
-        const { userId } = this.jwtService.decode(token);
+    async me(req: UserRequest): Promise<ResponseType> {
+        return {
+            statusCode: HttpStatus.OK,
+            message: 'Get User Info success!',
+            data: req.user,
+        };
+    }
 
-        const foundKeyStore = await this.keyStoreService.findByUserID(userId);
+    async getPublicKey(token: string) {
+        const { id } = this.jwtService.decode(token);
+
+        const foundKeyStore = await this.keyStoreService.findByUserID(id);
 
         if (!foundKeyStore) return false;
 
