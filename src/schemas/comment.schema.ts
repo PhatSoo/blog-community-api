@@ -13,7 +13,7 @@ export class Comment {
     parentId: Types.ObjectId;
 
     @Prop({ required: true })
-    content: string;
+    message: string;
 
     @Prop({ default: true })
     status: boolean;

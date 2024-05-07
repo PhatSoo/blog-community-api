@@ -115,60 +115,6 @@ export class PostService {
         };
     }
 
-    async getPostComment(slug: string): Promise<ResponseType> {
-        const foundPost = await this.postModel.findOne({ slug });
-
-        if (!foundPost) throw new NotFoundException('Post not found!');
-
-        return {
-            message: "Get post's comment success!",
-            statusCode: HttpStatus.OK,
-            data: await this.commentService.getPostComment(foundPost._id),
-        };
-    }
-
-    async createComment(
-        req: UserRequest,
-        slug: string,
-        createCommentDTO: CreateCommentDTO,
-    ): Promise<ResponseType> {
-        const foundPost = await this.postModel.findOne({ slug });
-
-        if (!foundPost) throw new NotFoundException('Post not found!');
-
-        return {
-            message: 'Create comment success!',
-            statusCode: HttpStatus.CREATED,
-            data: await this.commentService.createPostComment(
-                req.user.id,
-                foundPost._id,
-                createCommentDTO,
-            ),
-        };
-    }
-
-    async createSubComment(
-        req: UserRequest,
-        slug: string,
-        commentId: string,
-        createCommentDTO: CreateCommentDTO,
-    ): Promise<ResponseType> {
-        const foundPost = await this.postModel.findOne({ slug });
-
-        if (!foundPost) throw new NotFoundException('Post not found!');
-
-        return {
-            message: 'Create comment success!',
-            statusCode: HttpStatus.CREATED,
-            data: await this.commentService.createPostSubComment(
-                req.user.id,
-                foundPost._id,
-                commentId,
-                createCommentDTO,
-            ),
-        };
-    }
-
     async checkPermission(userId: string, slug: string) {
         const foundPostOfUser = await this.postModel.findOne({
             createdBy: new Types.ObjectId(userId),
