@@ -13,15 +13,11 @@ import { CommentService } from './comment.service';
 import { CreateCommentDTO, EditCommentDTO } from '../dtos';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CommentGuard } from './comment.guard';
-import { PostService } from 'src/post/post.service';
 import { UserRequest } from 'src/types';
 
 @Controller('comment')
 export class CommentController {
-    constructor(
-        private commentService: CommentService,
-        private postService: PostService,
-    ) {}
+    constructor(private commentService: CommentService) {}
 
     // 1. Get comments from post
     @Get('/:slug')

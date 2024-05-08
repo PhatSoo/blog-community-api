@@ -22,52 +22,10 @@ export class CommentService {
 
         if (!foundPost) throw new NotFoundException('Post not found!');
 
-        // console.log(await this.commentModel.find({}));
-
-        const comments = await this.commentModel.aggregate([
-            {
-                $match: {
-                    parentId: null,
-                    postId: foundPost._id,
-                },
-            },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: '_id',
-                    foreignField: 'parentId',
-                    as: 'replies',
-                },
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'userId',
-                    foreignField: '_id',
-                    as: 'user',
-                },
-            },
-            {
-                $unwind: '$user',
-            },
-            {
-                $unset: [
-                    'user.password',
-                    'user.createdAt',
-                    'user.updatedAt',
-                    'user.__v',
-                ],
-            },
-            {
-                $project: {
-                    _id: 1,
-                    postId: 1,
-                    user: 1,
-                    replies: 1,
-                    message: 1,
-                },
-            },
-        ]);
+        const comments = await this.commentModel
+            .find({ postId: foundPost._id })
+            .populate('parentId')
+            .populate('userId', '-password -updatedAt -isAdmin -__v');
 
         return {
             message: "Get post's comment success!",
