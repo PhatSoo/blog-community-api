@@ -9,18 +9,21 @@ import {
     Query,
     Req,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { PostService } from './post.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PostGuard } from './post.guard';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('post')
 export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
+    @UseInterceptors(CacheInterceptor)
     list(@Query('sortBy') sortBy: string = 'createdAt') {
         // createdAt || views || likes || interactives
         return this.postService.list(sortBy);

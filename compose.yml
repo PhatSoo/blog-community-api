@@ -1,16 +1,27 @@
 services:
-  mongodb:
-    image: mongo:latest
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
-    ports:
-      - '2717:27017'
-    volumes:
-      - chat-app-db:/data/db
-      - chat-app-config:/data/configdb
-    container_name: 'community-chat-app'
+    mongo-db:
+        image: mongo:latest
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: example
+        ports:
+            - '2717:27017'
+        volumes:
+            - chat-app-mongo_db:/data/db
+            - chat-app-mongo_config:/data/configdb
+        container_name: 'community-chat-mongo'
+
+    redis-cache:
+        image: redis:latest
+        restart: always
+        ports:
+            - '6379:6379'
+        container_name: 'community-chat-redis'
+        volumes:
+            - chat-app-redis_cache:/data
+
 volumes:
-  chat-app-db:
-  chat-app-config:
+    chat-app-mongo_db:
+    chat-app-mongo_config:
+    chat-app-redis_cache:

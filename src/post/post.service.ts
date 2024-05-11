@@ -1,24 +1,18 @@
 import {
     BadRequestException,
-    ForbiddenException,
     HttpStatus,
     Injectable,
     NotFoundException,
-    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CreateCommentDTO, CreatePostDTO, EditPostDTO } from '../dtos';
+import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { Post } from 'src/schemas';
-import { ResponseType, UserRequest } from '../types';
-import { CommentService } from 'src/comment/comment.service';
+import { ResponseType } from '../types';
 
 @Injectable()
 export class PostService {
-    constructor(
-        @InjectModel(Post.name) private postModel: Model<Post>,
-        private commentService: CommentService,
-    ) {}
+    constructor(@InjectModel(Post.name) private postModel: Model<Post>) {}
 
     async list(sortBy: string): Promise<ResponseType> {
         const sortOption = {};
