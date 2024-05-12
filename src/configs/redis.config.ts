@@ -1,8 +1,4 @@
-import {
-    CacheModuleOptions,
-    CacheOptions,
-    CacheOptionsFactory,
-} from '@nestjs/cache-manager';
+import { CacheModuleOptions, CacheOptionsFactory } from '@nestjs/cache-manager';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as redisStore from 'cache-manager-redis-store';
@@ -11,7 +7,7 @@ import * as redisStore from 'cache-manager-redis-store';
 export class RedisConfig implements CacheOptionsFactory {
     constructor(private configService: ConfigService) {}
 
-    private TIME_TO_LIMIT = 5 * 60; // 5 minutes
+    private TIME_TO_LIMIT = 1 * 60; // 1 minutes
 
     createCacheOptions(): CacheModuleOptions {
         return {
