@@ -9,12 +9,14 @@ import {
     Query,
     Req,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { PostService } from './post.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PostGuard } from './post.guard';
+import { CacheInterceptor, CacheKey } from '@nestjs/cache-manager';
 
 @Controller('post')
 export class PostController {
@@ -27,11 +29,15 @@ export class PostController {
     }
 
     @Get(':slug')
+    @UseInterceptors(CacheInterceptor)
+    @CacheKey('post-details-by-slug')
     getDetail(@Param('slug') slug: string) {
         return this.postService.getDetails(slug);
     }
 
     @Get('user/:createdBy')
+    @UseInterceptors(CacheInterceptor)
+    @CacheKey('post-details-by-user')
     getPostByUserId(@Param('createdBy') createdBy: string) {
         return this.postService.getPostByUserId(createdBy);
     }

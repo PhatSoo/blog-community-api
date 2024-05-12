@@ -11,16 +11,15 @@ import { JwtService } from '@nestjs/jwt';
 import { Token, UserRequest } from 'src/types';
 import { HEADERS } from 'src/constants';
 import { UserService } from 'src/user/user.service';
-import { KeyStoreService } from 'src/keyStore/keyStore.service';
 import { ResponseType } from 'src/types';
-import { Types } from 'mongoose';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private jwtService: JwtService,
         private userService: UserService,
-        private keyStoreService: KeyStoreService,
+        private redisService: RedisService,
     ) {}
 
     async login(loginDTO: LoginDTO): Promise<ResponseType> {
@@ -40,12 +39,8 @@ export class AuthService {
             privateKey,
         );
         // store login session of user
-        const keyStore = await this.keyStoreService.findOneAndUpdate({
-            userId: new Types.ObjectId(id),
-            publicKey,
-        });
-        if (!keyStore)
-            throw new BadRequestException('Something went wrong! Re-login.');
+        await this.redisService.storeKey(id, publicKey);
+
         return {
             statusCode: HttpStatus.OK,
             message: 'Login successful!',
@@ -82,13 +77,13 @@ export class AuthService {
 
         const { id, displayName, isAdmin } = decode;
 
-        const foundKeyStore = await this.keyStoreService.findByUserID(id);
+        const foundKeyStore: any = await this.redisService.getKey(id);
 
         if (!foundKeyStore) throw new UnauthorizedException('Re-login!');
 
         // check if user use an old refreshToken => true => disconnect user
-        if (foundKeyStore.refreshTokenUsed.includes(rf_token)) {
-            await this.keyStoreService.deleteByUserId(id);
+        if (foundKeyStore.refreshTokensUsed.includes(rf_token)) {
+            await this.redisService.getKey(id);
 
             throw new UnauthorizedException('Something went wrong! Re-login.');
         }
@@ -97,8 +92,8 @@ export class AuthService {
             this.jwtService.verify(rf_token, {
                 publicKey: foundKeyStore.publicKey,
             });
-        } catch (error) {
-            throw new UnauthorizedException('Re-login');
+        } catch (error: any) {
+            throw new UnauthorizedException(error.message);
         }
 
         const { publicKey, privateKey } = this.generateKeyPair();
@@ -108,16 +103,7 @@ export class AuthService {
             privateKey,
         );
 
-        const keyStore = await this.keyStoreService.findOneAndUpdate(
-            {
-                userId: new Types.ObjectId(id),
-                publicKey,
-            },
-            { $push: { refreshTokenUsed: rf_token } },
-        );
-
-        if (!keyStore)
-            throw new BadRequestException('Something went wrong! Re-login.');
+        await this.redisService.storeKey(id, publicKey, rf_token);
 
         return {
             statusCode: HttpStatus.OK,
@@ -129,12 +115,7 @@ export class AuthService {
     async logout(req: UserRequest): Promise<ResponseType> {
         const { id } = req.user;
 
-        const deleteKeyStore = await this.keyStoreService.deleteByUserId(id);
-
-        if (!deleteKeyStore)
-            throw new BadRequestException(
-                'Something went wrong! Try again later.',
-            );
+        await this.redisService.deleteKey(id);
 
         return {
             statusCode: HttpStatus.OK,
@@ -153,7 +134,7 @@ export class AuthService {
     async getPublicKey(token: string) {
         const { id } = this.jwtService.decode(token);
 
-        const foundKeyStore = await this.keyStoreService.findByUserID(id);
+        const foundKeyStore: any = await this.redisService.getKey(id);
 
         if (!foundKeyStore) return false;
 
