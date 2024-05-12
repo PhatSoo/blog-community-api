@@ -30,11 +30,13 @@ export class PostController {
     }
 
     @Get(':slug')
+    @UseInterceptors(CacheInterceptor)
     getDetail(@Param('slug') slug: string) {
         return this.postService.getDetails(slug);
     }
 
     @Get('user/:createdBy')
+    @UseInterceptors(CacheInterceptor)
     getPostByUserId(@Param('createdBy') createdBy: string) {
         return this.postService.getPostByUserId(createdBy);
     }

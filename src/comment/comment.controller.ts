@@ -8,12 +8,14 @@ import {
     Post,
     Req,
     UseGuards,
+    UseInterceptors,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDTO, EditCommentDTO } from '../dtos';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CommentGuard } from './comment.guard';
 import { UserRequest } from 'src/types';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('comment')
 export class CommentController {
@@ -21,6 +23,7 @@ export class CommentController {
 
     // 1. Get comments from post
     @Get('/:slug')
+    @UseInterceptors(CacheInterceptor)
     async getComment(@Param('slug') slug: string) {
         return this.commentService.getCommentsBySlug(slug);
     }
