@@ -1,6 +1,7 @@
 import {
     BadRequestException,
     HttpStatus,
+    Inject,
     Injectable,
     NotFoundException,
 } from '@nestjs/common';
@@ -9,23 +10,40 @@ import { Model, Types } from 'mongoose';
 import { CreatePostDTO, EditPostDTO } from '../dtos';
 import { Post } from 'src/schemas';
 import { ResponseType } from '../types';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PostService {
-    constructor(@InjectModel(Post.name) private postModel: Model<Post>) {}
+    constructor(
+        @InjectModel(Post.name) private postModel: Model<Post>,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    ) {}
 
     async list(sortBy: string): Promise<ResponseType> {
-        const sortOption = {};
-        sortOption[sortBy] = 'desc';
+        const redisKey = `list-post-by-${sortBy}`;
+
+        if (!(await this.cacheManager.get(redisKey))) {
+            const sortOption = {};
+            sortOption[sortBy] = 'desc';
+
+            const data = await this.postModel
+                .find({ status: true })
+                .populate('createdBy')
+                .sort(sortOption)
+                .exec();
+            await this.cacheManager.set(redisKey, data);
+            return {
+                message: 'List all posts success!',
+                statusCode: HttpStatus.OK,
+                data,
+            };
+        }
 
         return {
             message: 'List all posts success!',
             statusCode: HttpStatus.OK,
-            data: await this.postModel
-                .find({ status: true })
-                .populate('createdBy')
-                .sort(sortOption)
-                .exec(),
+            data: await this.cacheManager.get(redisKey),
         };
     }
 
@@ -67,6 +85,11 @@ export class PostService {
             ...createPost,
             createdBy: new Types.ObjectId(userId),
         };
+
+        await this.cacheManager.set(
+            'list-post-by-createdAt',
+            await this.postModel.find({}).sort('-createdAt'),
+        );
 
         return {
             message: 'Create post success!',

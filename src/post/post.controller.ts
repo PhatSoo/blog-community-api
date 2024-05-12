@@ -16,25 +16,28 @@ import { PostService } from './post.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PostGuard } from './post.guard';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor, CacheKey } from '@nestjs/cache-manager';
 
 @Controller('post')
 export class PostController {
     constructor(private postService: PostService) {}
 
     @Get()
-    @UseInterceptors(CacheInterceptor)
     list(@Query('sortBy') sortBy: string = 'createdAt') {
         // createdAt || views || likes || interactives
         return this.postService.list(sortBy);
     }
 
     @Get(':slug')
+    @UseInterceptors(CacheInterceptor)
+    @CacheKey('post-details-by-slug')
     getDetail(@Param('slug') slug: string) {
         return this.postService.getDetails(slug);
     }
 
     @Get('user/:createdBy')
+    @UseInterceptors(CacheInterceptor)
+    @CacheKey('post-details-by-user')
     getPostByUserId(@Param('createdBy') createdBy: string) {
         return this.postService.getPostByUserId(createdBy);
     }
