@@ -12,6 +12,9 @@ export class Comment {
     @Prop({ ref: 'Comment' })
     parentId: Types.ObjectId;
 
+    @Prop({ ref: 'Comment' })
+    replies: Types.ObjectId[];
+
     @Prop({ required: true })
     message: string;
 
@@ -20,3 +23,10 @@ export class Comment {
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
+
+CommentSchema.pre('find', function (next) {
+    // populate replies and userId before return to user
+    this.populate('replies').populate('userId');
+    this.populate({ path: 'replies', populate: { path: 'userId' } });
+    next();
+});

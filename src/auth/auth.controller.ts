@@ -1,17 +1,8 @@
-import {
-    Body,
-    Controller,
-    Get,
-    Post,
-    Req,
-    UseGuards,
-    UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { LoginDTO, RegisterDTO } from '../dtos';
 import { AuthService } from './auth.service';
 import { UserRequest } from '../types';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('/auth')
 export class AuthController {
@@ -38,7 +29,7 @@ export class AuthController {
         return this.authService.logout(req);
     }
 
-    @Get('me')
+    @Get('/me')
     @UseGuards(JwtAuthGuard)
     me(@Req() req: UserRequest) {
         return this.authService.me(req);

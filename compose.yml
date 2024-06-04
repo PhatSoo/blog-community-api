@@ -1,4 +1,15 @@
 services:
+    app:
+        build: .
+        ports:
+            - '8000:8000'
+        volumes:
+            - .:/usr/src/app
+        container_name: 'api-project'
+        depends_on:
+            - mongo-db
+            - redis-cache
+
     mongo-db:
         image: mongo:latest
         restart: always
@@ -8,20 +19,20 @@ services:
         ports:
             - '2717:27017'
         volumes:
-            - chat-app-mongo_db:/data/db
-            - chat-app-mongo_config:/data/configdb
-        container_name: 'community-chat-mongo'
+            - blog-community-mongo_db:/data/db
+            - blog-community-mongo_config:/data/configdb
+        container_name: 'blog-community-mongo'
 
     redis-cache:
         image: redis:latest
         restart: always
         ports:
             - '6379:6379'
-        container_name: 'community-chat-redis'
+        container_name: 'blog-community-redis'
         volumes:
-            - chat-app-redis_cache:/data
+            - blog-community-redis_cache:/data
 
 volumes:
-    chat-app-mongo_db:
-    chat-app-mongo_config:
-    chat-app-redis_cache:
+    blog-community-mongo_db:
+    blog-community-mongo_config:
+    blog-community-redis_cache:
