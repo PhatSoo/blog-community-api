@@ -40,7 +40,7 @@ export class CommentController {
     }
 
     // 3. Create sub-comment for post
-    @Post('/:slug/:commentId')
+    @Post('/:slug/reply/:commentId')
     @UseGuards(JwtAuthGuard)
     async createSubComment(
         @Req() req: UserRequest,

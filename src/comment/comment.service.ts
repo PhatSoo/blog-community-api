@@ -79,6 +79,11 @@ export class CommentService {
         if (!createdComment)
             throw new BadRequestException('Create sub-comment failed');
 
+        await this.commentModel.findOneAndUpdate(
+            { postId: foundPost._id },
+            { $push: { replies: createdComment._id } },
+        );
+
         return {
             message: 'Create sub-comment success!',
             statusCode: HttpStatus.CREATED,
@@ -92,7 +97,7 @@ export class CommentService {
     ): Promise<ResponseType> {
         const foundComment = await this.commentModel.findById(id).exec();
 
-        for (let key in editCommentDTO) {
+        for (const key in editCommentDTO) {
             foundComment[key] = editCommentDTO[key];
         }
 
