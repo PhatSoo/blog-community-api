@@ -12,7 +12,7 @@ export class RedisConfig implements CacheOptionsFactory {
     createCacheOptions(): CacheModuleOptions {
         return {
             store: redisStore,
-            host: this.configService.get('REDIS_HOST'),
+            host: this.configService.get('REDIS_HOST') || 'localhost',
             port: this.configService.get('REDIS_PORT'),
             ttl: this.TIME_TO_LIMIT,
         };
