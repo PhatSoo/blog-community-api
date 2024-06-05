@@ -2,6 +2,7 @@ import {
     BadRequestException,
     HttpStatus,
     Injectable,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,6 +13,7 @@ import { ResponseType } from '../types';
 
 @Injectable()
 export class CommentService {
+    private readonly logger = new Logger(CommentService.name);
     constructor(
         @InjectModel(Comment.name) private commentModel: Model<Comment>,
         @InjectModel(Post.name) private postModel: Model<Post>,
@@ -20,7 +22,10 @@ export class CommentService {
     async getCommentsBySlug(slug: string): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
 
-        if (!foundPost) throw new NotFoundException('Post not found!');
+        if (!foundPost) {
+            this.logger.error('Post not found!');
+            throw new NotFoundException('Post not found!');
+        }
 
         const comments = await this.commentModel
             .find({ postId: foundPost._id })
@@ -41,7 +46,10 @@ export class CommentService {
     ): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
 
-        if (!foundPost) throw new NotFoundException('Post not found!');
+        if (!foundPost) {
+            this.logger.error('Post not found!');
+            throw new NotFoundException('Post not found!');
+        }
 
         const createdComment = await this.commentModel.create({
             userId: new Types.ObjectId(userId),
@@ -49,8 +57,10 @@ export class CommentService {
             ...createCommentDTO,
         });
 
-        if (!createdComment)
+        if (!createdComment) {
+            this.logger.error('Create comment failed!');
             throw new BadRequestException('Create comment failed!');
+        }
 
         return {
             message: 'Create comment success!',
@@ -67,7 +77,10 @@ export class CommentService {
     ): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
 
-        if (!foundPost) throw new NotFoundException('Post not found!');
+        if (!foundPost) {
+            this.logger.error('Post not found');
+            throw new NotFoundException('Post not found!');
+        }
 
         const createdComment = await this.commentModel.create({
             userId: new Types.ObjectId(userId),
@@ -76,8 +89,10 @@ export class CommentService {
             ...createCommentDTO,
         });
 
-        if (!createdComment)
+        if (!createdComment) {
+            this.logger.error('Create sub-comment failed');
             throw new BadRequestException('Create sub-comment failed');
+        }
 
         await this.commentModel.findOneAndUpdate(
             { postId: foundPost._id },
@@ -110,8 +125,10 @@ export class CommentService {
 
     async deleteComment(id: string): Promise<ResponseType> {
         const deletedComment = await this.commentModel.findByIdAndDelete(id);
-        if (!deletedComment)
+        if (!deletedComment) {
+            this.logger.error('Delete comments failed');
             throw new BadRequestException('Something went wrong!');
+        }
 
         return {
             message: 'Delete comment success',
@@ -122,8 +139,10 @@ export class CommentService {
     async checkPermission(userId: string, commentId: string) {
         const foundCommentOfUser = await this.commentModel.findById(commentId);
 
-        if (!foundCommentOfUser)
+        if (!foundCommentOfUser) {
+            this.logger.error('Comment not found!');
             throw new NotFoundException('Comment not found!');
+        }
 
         return foundCommentOfUser.userId.toString() === userId;
     }

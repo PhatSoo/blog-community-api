@@ -3,6 +3,7 @@ import {
     HttpStatus,
     Inject,
     Injectable,
+    Logger,
     NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,6 +16,7 @@ import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PostService {
+    private readonly logger = new Logger(PostService.name);
     constructor(
         @InjectModel(Post.name) private postModel: Model<Post>,
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -78,8 +80,10 @@ export class PostService {
             title: createPost.title,
         });
 
-        if (foundPost)
+        if (foundPost) {
+            this.logger.error('Post title has been used!');
             throw new BadRequestException(`Post title has been used!`);
+        }
 
         const postData = {
             ...createPost,
@@ -107,7 +111,7 @@ export class PostService {
             delete editPostDTO.slug;
         }
 
-        for (let key in editPostDTO) {
+        for (const key in editPostDTO) {
             foundPost[key] = editPostDTO[key];
         }
 
@@ -120,7 +124,10 @@ export class PostService {
 
     async delete(slug: string): Promise<ResponseType> {
         const foundPost = await this.postModel.findOne({ slug });
-        if (!foundPost) throw new NotFoundException('Post not found!');
+        if (!foundPost) {
+            this.logger.error('Post not found!');
+            throw new NotFoundException('Post not found!');
+        }
 
         const deletedPost = await this.postModel.deleteOne({ slug });
 

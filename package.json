@@ -35,11 +35,13 @@
     "class-validator": "^0.14.1",
     "helmet": "^7.1.0",
     "mongoose": "^8.3.0",
+    "nest-winston": "^1.10.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "redis": "^3.1.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

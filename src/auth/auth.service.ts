@@ -2,6 +2,7 @@ import {
     BadRequestException,
     HttpStatus,
     Injectable,
+    Logger,
     UnauthorizedException,
 } from '@nestjs/common';
 import { LoginDTO, RegisterDTO } from 'src/dtos';
@@ -16,6 +17,7 @@ import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
     constructor(
         private jwtService: JwtService,
         private userService: UserService,
@@ -26,9 +28,11 @@ export class AuthService {
         const { email, password } = loginDTO;
         const foundUser = await this.userService.findByEmail(email);
         if (!foundUser) {
+            this.logger.error('Login failed');
             throw new UnauthorizedException('Login failed!');
         }
         if (!(await bcrypt.compare(password, foundUser.password))) {
+            this.logger.error('Login failed');
             throw new UnauthorizedException('Login failed!');
         }
         const { publicKey, privateKey } = this.generateKeyPair();
@@ -53,14 +57,19 @@ export class AuthService {
 
         const foundUser = await this.userService.findByEmail(email);
 
-        if (foundUser)
+        if (foundUser) {
+            this.logger.error('This email has already used!');
             throw new BadRequestException('This email has already used!');
+        }
 
         registerDTO.password = await bcrypt.hash(registerDTO.password, 10);
 
         const newUser = await this.userService.createUser(registerDTO);
 
-        if (!newUser) throw new BadRequestException('Something went wrong!');
+        if (!newUser) {
+            this.logger.error('Create new user failed!');
+            throw new BadRequestException('Something went wrong!');
+        }
 
         return {
             statusCode: HttpStatus.CREATED,
@@ -71,7 +80,10 @@ export class AuthService {
     async refresh(req: UserRequest): Promise<ResponseType> {
         const rf_token = req.headers[HEADERS.RF_TOKEN];
 
-        if (!rf_token) throw new UnauthorizedException('Re-login!');
+        if (!rf_token) {
+            this.logger.error('Have no rf-token');
+            throw new UnauthorizedException('Re-login!');
+        }
 
         const decode: Token = this.jwtService.decode(rf_token);
 
@@ -79,12 +91,16 @@ export class AuthService {
 
         const foundKeyStore: any = await this.redisService.getKey(id);
 
-        if (!foundKeyStore) throw new UnauthorizedException('Re-login!');
+        if (!foundKeyStore) {
+            this.logger.error('Keystore not found!');
+            throw new UnauthorizedException('Re-login!');
+        }
 
         // check if user use an old refreshToken => true => disconnect user
         if (foundKeyStore.refreshTokensUsed.includes(rf_token)) {
             await this.redisService.getKey(id);
 
+            this.logger.error('Using rf-token in black list');
             throw new UnauthorizedException('Something went wrong! Re-login.');
         }
 
@@ -93,6 +109,7 @@ export class AuthService {
                 publicKey: foundKeyStore.publicKey,
             });
         } catch (error: any) {
+            this.logger.error(error.message);
             throw new UnauthorizedException(error.message);
         }
 

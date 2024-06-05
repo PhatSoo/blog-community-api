@@ -1,26 +1,26 @@
 services:
-    app:
-        build: .
-        ports:
-            - '8000:8000'
-        volumes:
-            - .:/usr/src/app
-        container_name: 'api-project'
-        environment:
-            - REDIS_HOST=blog-community-redis
-            - REDIS_PORT=6379
+    # app:
+    #     build: .
+    #     ports:
+    #         - '8000:8000'
+    #     volumes:
+    #         - .:/usr/src/app
+    #     container_name: 'api-project'
+    #     environment:
+    #         - REDIS_HOST=blog-community-redis
+    #         - REDIS_PORT=6379
 
-            - MONGO_HOST=blog-community-mongo
-            - DB_USER=root
-            - DB_PASS=example
-            - DB_PORT=27017
-            - DB_NAME=community-chat-app
+    #         - MONGO_HOST=blog-community-mongo
+    #         - DB_USER=root
+    #         - DB_PASS=example
+    #         - DB_PORT=27017
+    #         - DB_NAME=community-chat-app
 
-        depends_on:
-            - redis-cache
-            - mongo-db
-        networks:
-            - blog-community-network
+    #     depends_on:
+    #         - redis-cache
+    #         - mongo-db
+    #     networks:
+    #         - blog-community-network
 
     mongo-db:
         image: mongo:latest
